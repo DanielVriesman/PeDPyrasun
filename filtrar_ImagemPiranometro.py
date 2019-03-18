@@ -49,8 +49,8 @@ def filtrar_ImagemPiranometro(nome_arquivo,dados_pir,images) :
         for i in range(x, len(dados_pir)):
             # print(data[i])
             # print(i)
-            if ((time.strptime(dados_pir[i][1], "%H:%M:%S") == hour_image) and (
-                time.strptime(dados_pir[i][0], "%d/%m/%Y") == date_image)):
+            if ((time.strptime(dados_pir[i][1], "%H_%M_%S") == hour_image) and (
+                time.strptime(dados_pir[i][0], "%d_%m_%Y") == date_image)):
                 datafile.write(
                     img + ";" + substringdata + ";" + substringhora + ";" + dados_pir[i][5] + ";" + dados_pir[i][6] + ";" +
                     dados_pir[i][7] + ";" + dados_pir[i][8] + ";" + dados_pir[i][9] + ";" + dados_pir[i][10])
@@ -64,6 +64,9 @@ def filtrar_ImagemPiranometro(nome_arquivo,dados_pir,images) :
 
 
 if __name__ == '__main__':
+    if not os.path.exists("Dados_ImagemPiranometro"):
+        os.makedirs("Dados_ImagemPiranometro")
+
     imagens = listar_imagensar(args.pasta_de_imagens)
     dados_pir = carregar_dados_piranometro(args.dado_piranometro)
     filtrar_ImagemPiranometro(args.nome_arquivo_saida,dados_pir,imagens)
