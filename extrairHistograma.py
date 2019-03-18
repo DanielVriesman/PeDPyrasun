@@ -4,6 +4,8 @@ from numpy import genfromtxt
 import cv2
 import matplotlib.pyplot as plt
 import argparse
+import os
+
 
 parser = argparse.ArgumentParser(description='Extrai histograma dado um conjunto de imagens salvando ao final o valor de irradiancia total')
 parser.add_argument('arquivo_dados',help='inserir o nome de arquivo de dados, na pasta "Dados_ImagemPiranometro", o qual contem nome da imagem e valor dos respectivos sensores')
@@ -12,12 +14,12 @@ parser.add_argument('nome_arquivo_saida',type=str,help='inserir o nome do arquiv
 args = parser.parse_args()
 
 
-
 def extrairHistograma(nome_arquivo,pasta_destino,dados):
     new_data = []
     for i in range(0,len(dados)):
         img = cv2.imread(str(pasta_destino)+dados[i][0])
         print(i)
+        print(dados[i][0])
         ##extrai informacoes correspodentes a histograma vermelho, verde e azul e faz a concatenacao dos vetores
         hist_B = cv2.calcHist([img],[0],None,[256],[0,256])
         hist_G = cv2.calcHist([img], [1], None, [256], [0, 256])
@@ -48,6 +50,9 @@ def ler_dados(name):
 
 ##passar no args
 if __name__ == '__main__':
+
+    if not os.path.exists("Base_de_dados"):
+        os.makedirs("Base_de_dados")
     dados = ler_dados(args.arquivo_dados)
     extrairHistograma(args.nome_arquivo_saida,args.pasta_de_imagens,dados)
 
