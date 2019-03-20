@@ -5,10 +5,13 @@ from numpy import genfromtxt
 from sklearn.cross_validation import train_test_split
 from sklearn.preprocessing import normalize
 import matplotlib.pyplot as plt
+from tensorflow.keras.models import model_from_yaml
 import argparse
+import os
 
 parser = argparse.ArgumentParser(description='Treina o classificador conforme os dados extraidos das imagens')
 parser.add_argument('base_dados',help='Indicar nome do arquivo que possui os dados')
+parser.add_argument('nome_modelo',help='Indicar nome do modelo que sera salvo apos o treinamento')
 args = parser.parse_args()
 
 
@@ -16,14 +19,14 @@ args = parser.parse_args()
 def carregar_dados(nome_arquivo):
     datain = genfromtxt(nome_arquivo + '.txt', delimiter=' ')  # ,dtype='unicode')
 
-    entrada = datain[:, 2:len(datain[0]) - 2]
+    entrada = datain[:, 3:len(datain[0]) - 2]
     entrada = np.array(entrada,dtype=float)
     entrada = normalize(entrada)
 
     ##retira ultima coluna dos dados correspondentes ao valor da irradiacao
     saida = datain[:, len(datain[0]) - 1]
 
-
+    print(saida[10])
 
     ##extrai outliers (valores maiores que 1000)
     nova_entrada = []
@@ -111,14 +114,29 @@ def build_model(camadas,formato_entrada):
 
 
 
-
-if __name__ == '__main__':
-    x_treino,x_teste,y_treino,y_teste = carregar_dados(args.base_dados)
-    modelo = build_model(camadas=110,formato_entrada=x_treino.shape[1])
-    print("Test Samples: " + str(len(y_teste)))
-
-    history = modelo.fit(x_treino, y_treino, validation_split=0.3, epochs=200, shuffle=True)
+def treinar_modelo(modelo, x_treino, y_treino,nome_modelo):
+    history = modelo.fit(x_treino, y_treino, validation_split=0.3, epochs=10, shuffle=True)
     resultado = modelo.predict(x_teste)
     [loss, mse, mae] = modelo.evaluate(x_teste, y_teste, verbose=0)
     mostrar_resultado(history, resultado, y_teste)
+    # transformar o objeto modelo para codificacao YAML
+    model_yaml = modelo.to_yaml()
+    with open("Redes_Treinadas/"+nome_modelo + ".yaml", "w") as yaml_file:
+        yaml_file.write(model_yaml)
+    # serialize weights to HDF5
+    modelo.save_weights("Redes_Treinadas/"+nome_modelo+".h5")
+    print("Modelo salvo com sucesso!")
+
+
+if __name__ == '__main__':
+    ##verificar se existe a pasta "Modelo" para Salvar modelos treinados
+    if not os.path.exists("Redes_Treinadas"):
+        os.makedirs("Redes_Treinadas")
+
+    x_treino,x_teste,y_treino,y_teste = carregar_dados(args.base_dados)
+    modelo = build_model(camadas=110,formato_entrada=x_treino.shape[1])
+    print("Test Samples: " + str(len(y_teste)))
+    treinar_modelo(modelo,x_treino, y_treino, args.nome_modelo)
+
+
 
